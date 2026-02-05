@@ -1,0 +1,3 @@
+[submodule "epstein-docs.github.io"]
+	path = epstein-docs.github.io
+	url = git@github.com:epstein-docs/epstein-docs.github.io.git
