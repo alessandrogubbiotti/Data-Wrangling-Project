@@ -1,0 +1,6 @@
+.environment
+
+
+*/__pycache__/
+
+*.log
