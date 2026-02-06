@@ -1,6 +1,8 @@
 .environment
 *.swp
 
+*/epstein-docs.github.io/_site/
+
 */__pycache__/
 
 *.log
