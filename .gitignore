@@ -3,6 +3,9 @@
 
 */epstein-docs.github.io/_site/
 
+*.db
+*.csv
+
 */__pycache__/
 
 *.log
