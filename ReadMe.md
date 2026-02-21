@@ -1,4 +1,8 @@
 ## Epstein Files: Exploratory Data Analysis
+
+[Another Graph](https://epsteingraph.com)
+[Yet another graph](https://epstein-file-explorer.com/network)
+
 Unfortunately, I have just started the Project. I had to send todat 12th of Feb. the thesis. I will conclude it by Monday. 
 #### Curiosities
 

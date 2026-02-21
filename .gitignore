@@ -1,7 +1,21 @@
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+Untitled*.ipynb
+
+# PDFs and Large Binaries
+*.pdf
+
+# Auto-generated HTML and dependencies
+Report/*.html
+Report/lib/
+
 .environment
 *.swp
 
 */epstein-docs.github.io/_site/
+
+*/Data/*
 
 *.db
 *.csv
