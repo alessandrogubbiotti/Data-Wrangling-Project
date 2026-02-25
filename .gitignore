@@ -11,6 +11,7 @@ Report/*.html
 Report/lib/
 
 .environment
+.graph_environment
 *.swp
 
 */epstein-docs.github.io/_site/
