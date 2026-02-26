@@ -5,7 +5,15 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{pifont} % for symbols
 
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\newcommand{\cmark}{\textcolor{green}{\ding{52}}} % green check / thumbs up
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}   % red cross / thumbs down
 
 % Title Page Information
 \title[Epstein Files Analysis]{Epstein Files Analysis}
@@ -25,20 +33,19 @@
 
 % --- SLIDE 2: BACKGROUND (3 IMAGES, NO WORDS) ---
 
-\begin{frame}{Context}
+\begin{frame}{Contesto}
     \begin{columns}
     
         % LEFT COLUMN — your text/data
         \column{0.5\textwidth}
         % Write your Epstein files data here
-        \small
+        Gli Epstein Files sono più di 300 Gb di data pubblicati da 
+	\small
         \begin{itemize}
-            \item Key dates:
-            \item Legal filings:
-            \item Agencies involved:
-            \item Public response:
+            \item  Il Dipartimento di Giustizia statounitense (\textbf{DOJ})
+            \item   La camera statounitense (\textbf{house oversight documents}) 
         \end{itemize}
-        
+        Il DOJ è obbligato a rilasciare i documenti dall'Epstein Files Transparency Act (\textbf{EFTA}).\\ La pubblicazione dei documenti da parte della camera è volontaria. \\Ci sono doppioni.   
         % RIGHT COLUMN — stacked images
         \column{0.5\textwidth}
         \centering
@@ -55,153 +62,201 @@
 \end{frame}
 
 % --- SLIDE 3: DATA FORMAT ---
-\begin{frame}{The Raw Data Format }
-    \begin{center}
-        \includegraphics[height=0.7\textheight]{actual_document_screenshot.png}
-        \begin{itemize}
-            \item Visualizing the source: Redactions, OCR noise, and legal headers.
-        \end{itemize}
+\begin{frame}{ Il Formato dei Dati Sorgente}
+    \begin{columns}
+    
+        % LEFT COLUMN — your text/data
+        \column{0.4\textwidth}
+
+        \centering
+	Un'esempio di documento rilasciato dal DOJ.
+	\begin{itemize}
+		\item Censura.
+		\item Formato .pdf, .jpg o simili.
+	\end{itemize}
+	Gli OCR (Optical Character Recognition) permettono di ottenere il formato .txt senza problemi. 
+        \column{0.6\textwidth}
+
+        
+     \begin{center}
+        \includegraphics[height=0.7\textheight]{Images/EFTA01333513.jpg}
     \end{center}
-\end{frame}
-%
-%% --- SLIDE 4: DIDACTIC - OCR CHALLENGES ---
-%\begin{frame}{Technical Bottleneck: From Pixels to Text}
-%    \textbf{The GitHub Problem:}
-%    \begin{itemize}
-%        \item Most repositories host raw OCR output.
-%        \item High error rates in names/dates due to poor scan quality.
-%    \end{itemize}
-%    \vspace{0.3cm}
-%    \textbf{AI Course Reflection (Didactic):}
-%    \begin{itemize}
-%        \item Convolutional Neural Networks (CNNs) for layout analysis.
-%        \item Handling "noisy" text: Why standard Tesseract fails here.
-%    \end{itemize}
-%\end{frame}
-%
+    	    
+    \end{columns}
 
-% --- SLIDE 5: DATASET & SEMANTIC RELATIONS ---
-\begin{frame}{The Dataset}
-    \begin{itemize}
-        \item \textbf{Method:} Beyond keyword search—parsing semantic relations ($Subject \to Verb \to Object$).
-        \item \textbf{Current State of Art:} Many "cooler" LLM-based methods were published during this project.
-        \item \textbf{Honest Assessment:} The AI here is "not supercool," but robust for baseline relational extraction.
-    \end{itemize}
+
 \end{frame}
 
-% --- SLIDE 6: GRAPH THEORY TRANSITION ---
-\begin{frame}{Graphs: Semantic Graph}
-    \begin{itemize}
-        \item \textbf{Bipartite Start:} People linked to Documents.
-        \item \textbf{The Edge Variables:} Weighting connections by frequency and proximity.
-        \item \textbf{Dual Graph Transformation:} Treating relationships as nodes to identify hidden structures.
-    \end{itemize}
-\end{frame}
+\begin{frame}{Il Dataset}
+	Il dataset \footnote{ \href{https://github.com/maxandrews/Epstein-doc-explorer}{Link alla pagina github}} onsiste in \emph{triple semantiche}
+\[
+A \xrightarrow{B} C
+\]
 
-\begin{frame}{Graphs: The Bipartite Version}
-    \begin{itemize}
-        \item \textbf{Bipartite Start:} People linked to Documents.
-        \item \textbf{The Edge Variables:} Weighting connections by frequency and proximity.
-        \item \textbf{Dual Graph Transformation:} Treating relationships as nodes to identify hidden structures.
-    \end{itemize}
+\begin{itemize}
+    \item $A$ = Attore
+    \item $B$ = Azione
+    \item $C$ = Target
+\end{itemize}
+\includegraphics[width=\textwidth, height=2cm]{Images/sample_edge.png}	
+	Le triplette sono state estratte da Claude.
+	
 \end{frame}
 
 
-\begin{frame}{Graphs: The Dual Graph:}
-    \begin{itemize}
-        \item \textbf{Bipartite Start:} People linked to Documents.
-        \item \textbf{The Edge Variables:} Weighting connections by frequency and proximity.
-        \item \textbf{Dual Graph Transformation:} Treating relationships as nodes to identify hidden structures.
-    \end{itemize}
-\end{frame}
-\begin{frame}{Counterterrorism: Finding Paul Revere}
-\begin{columns}[T]  % <-- aligns columns at the top 
-    % LEFT COLUMN
-    \column{0.55\textwidth}
-    \vspace{0.2cm}
-    Dai dati raccolti in 
-    \vspace{0.2cm}
-    \includegraphics[width=\textwidth,height=0.9\textheight,keepaspectratio]
-    {Images/Paul_Revere_person.png}
-    
-    \vspace{0.05cm}
-    {\tiny Grafo che unisce persone cha appartengono alla stessa associazione }
 
-    % RIGHT COLUMN
-    \column{0.45\textwidth}
+\begin{frame}{Toy Model: Distinguere Chomsky da Andrew}
+    \begin{columns}[t] % top-aligned columns
+
+        % Chomsky Column
+        \column{0.5\textwidth}
+        \textbf{Noam Chomsky} % ← plain text, normal left-alignment
+        \vspace{0.3cm}
+
+        \includegraphics[height=3cm]{Images/Chomsky_Epstein.jpeg} 
+        \vspace{0.2cm}
+
+        \begin{itemize}
+            \item[\cmark] Figlio di emigrati Ebrei 
+            \item[\cmark] Amico di Pepe Mujica
+        \end{itemize}
+
+        % Andrew Column
+        \column{0.5\textwidth}
+        \textbf{Prince Andrew} % ← plain text, normal left-alignment
+        \vspace{0.3cm}
+
+        \includegraphics[height=3cm]{Images/Andrew_Epstein.jpeg} 
+        \vspace{0.2cm}
+
+        \begin{itemize}
+            \item[\xmark] Esponente della monarchia Britannica
+            \item[\xmark] Eroe della guerra nelle Malvine
+        \end{itemize}
+
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Toy Model 2: Distinguere Chomsky da Bannon? }
+   \begin{flushleft}
+	O, forse, ci sbagliamo... 
+    \end{flushleft}
+	 \centering
+    \vspace{0.5cm}
     
-    \includegraphics[width=0.75\textwidth]
-    {Images/Paul_Revere_Metadata.png}
-    
-    \vspace{0.05cm}
-    {\tiny Dual Graph}
-    
-    \vspace{0.2cm}
-    
-    \includegraphics[width=0.60\textwidth]
-    {Images/Paul_Revere.jpg}
-    
-    \vspace{0.05cm}
-    {\tiny Paul Revere}
+    \includegraphics[height=5cm]{Images/Bannon_Chomsky.jpeg}
+    \vspace{0.3cm}
+\end{frame}
+
+
+
+\begin{frame}{Grafo delle Triple Semantiche}
+\begin{columns}[t]
+% Semantic Triples Graph
+\column{0.5\textwidth}
+\centering
+\textbf{Semantic Triples Graph}
+\vspace{0.3cm}
+
+\begin{tikzpicture}[->, >=Stealth, node distance=2.5cm]
+    \node (A) [circle, draw, fill=blue!20] {A};
+    \node (C) [circle, draw, fill=blue!20, right=of A] {C};
+    \draw (A) -- node[above]{Doc123} (C);
+\end{tikzpicture}
+
+% Bipartite Graph (triangle style)
+\column{0.5\textwidth}
+\centering
+\textbf{Bipartite Graph}
+\vspace{0.3cm}
+
+\begin{tikzpicture}[->, >=Stealth]
+    % Nodes
+    \node (A) [circle, draw, fill=blue!20] at (0,0) {A};
+    \node (D) [rectangle, draw, fill=green!20] at (1.5,0.8) {Doc123};
+    \node (C) [circle, draw, fill=blue!20] at (3,0) {C};
+
+    % Edges
+    \draw (A) -- (D);
+    \draw (D) -- (C);
+\end{tikzpicture}
 
 \end{columns}
-
-\footnote{\tiny https://kieranhealy.org/blog/archives/2013/06/09/using-metadata-to-find-paul-revere/}
 \end{frame}
 
 
 
-% --- SLIDE 8: MASSIVE DISCLOSURES ---
-\begin{frame}{Aims 2: The Transparency Context}
-    \begin{itemize}
-        \item Comparing to the **Panama Papers** or the **Stasi Archives (1989)**.
-    \end{itemize}
-    \begin{center}
-        \includegraphics[height=3cm]{panama_papers.png} \quad
-        \includegraphics[height=3cm]{soviet_archives.png}
-    \end{center}
-\end{frame}
+%\begin{frame}{Semantic Triples and Dual Graph Example}
+%
+%% Semantic Triples Graph (A -> C -> E)
+%\centering
+%\textbf{Semantic Triples Graph}
+%\vspace{0.3cm}
+%
+%\begin{tikzpicture}[->, >=Stealth, node distance=2.5cm]
+%    \node (A) [circle, draw, fill=blue!20] {A};
+%    \node (C) [circle, draw, fill=blue!20, right=of A] {C};
+%    \node (E) [circle, draw, fill=blue!20, right=of C] {E};
+%
+%    \draw (A) -- node[above]{Doc123} (C);
+%    \draw (C) -- node[above]{Doc456} (E);
+%\end{tikzpicture}
+%
+%\vspace{0.8cm}
+%
+%% Dual Graph
+%\centering
+%\textbf{Dual Graph (Documents connected via shared node)}
+%\vspace{0.3cm}
+%
+%\begin{tikzpicture}[->, >=Stealth, node distance=3cm]
+%    % Document nodes
+%    \node (D1) [rectangle, draw, fill=green!20] {Doc123};
+%    \node (D2) [rectangle, draw, fill=green!20, right=of D1] {Doc456};
+%
+%    % Edge between documents
+%    \draw (D1) -- (D2) node[midway, above] {shared node C};
+%
+%    % Optional: underlying triples lightly
+%    \node (Cnode) [circle, draw, fill=blue!20, below=0.7cm of D1] {C};
+%    \draw[dashed] (Cnode) -- (D1);
+%    \draw[dashed] (Cnode) -- (D2);
+%\end{tikzpicture}
+%
+%\end{frame}
+%\begin{frame}{Counterterrorism: Finding Paul Revere}
+%\begin{columns}[T]  % <-- aligns columns at the top 
+%    % LEFT COLUMN
+%    \column{0.55\textwidth}
+%    \vspace{0.2cm}
+%    Dai dati raccolti in 
+%    \vspace{0.2cm}
+%    \includegraphics[width=\textwidth,height=0.9\textheight,keepaspectratio]
+%    {Images/Paul_Revere_person.png}
+%    
+%    \vspace{0.05cm}
+%    {\tiny Grafo che unisce persone cha appartengono alla stessa associazione }
+%
+%    % RIGHT COLUMN
+%    \column{0.45\textwidth}
+%    
+%    \includegraphics[width=0.75\textwidth]
+%    {Images/Paul_Revere_Metadata.png}
+%    
+%    \vspace{0.05cm}
+%    {\tiny Dual Graph}
+%    
+%    \vspace{0.2cm}
+%    
+%    \includegraphics[width=0.60\textwidth]
+%    {Images/Paul_Revere.jpg}
+%    
+%    \vspace{0.05cm}
+%    {\tiny Paul Revere}
+%\end{columns}
+%
+%\footnote{\url{https://kieranhealy.org/blog/archives/2013/06/09/using-metadata-to-find-paul-revere/}}
+%\end{frame}
 
-% --- SLIDE 9: CASE STUDIES & IDENTIFICATION ---
-\begin{frame}{Distinguere Soggetti: Chomsky vs. Prince Andrew}
-        \begin{columns}
-        \column{0.5\textwidth}	
-	\textbf{Noam Chomsky}
-	\vspace{0.3cm}
-        \includegraphics[height=3cm]{Images/Chomsky_Epstein.jpeg} 
-        \begin{itemize}
-        	\item 
-		\item
-		\item  
-	\end{itemize}
-        \column{0.5\textwidth}
-       	\textbf{Prince Andrew}
-	\vspace{0.37cm}
-	\includegraphics[height=3cm]{Images/Andrew_Epstein.jpeg}  
-    \begin{itemize}
-	\item 
-	\item Esponente di spic
-	\item Eroe della guerra nelle Malvine
-    \end{itemize}
-	\end{columns}
-\end{frame}
-
-\begin{frame}[Ma forse]
-	\includegraphics[width=\textwidth]{Images/Bannon_Chomsky.jpeg} 
-\end{frame}
-
-\begin{Frame}[Unmasking]
- \textbf{Unmasking:} Triangulating data to identify "Unknown Persons."
-
-\end{Frame}
-
-% --- SLIDE 10: INFORMATION LOSS & LIMITATIONS ---
-\begin{frame}{The "Epstein Universe" Constraint}
-    \begin{itemize}
-        \item \textbf{Conditionality:} Findings are limited to the scope of these specific files.
-        \item \textbf{Granularity Mismatch:} Balancing a 100-page deposition against a 2-line email.
-        \item \textbf{Lossy Compression:} What is lost when an email becomes a graph edge? (Tone, intent, and subtext).
-    \end{itemize}
-\end{frame}
 
 \end{document}
