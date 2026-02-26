@@ -1,8 +1,16 @@
 import pandas as pd
+import os
 from collections import Counter
 import igraph as ig
 import time
-import scipy.sparse.linalg as sla
+from textwrap import shorten
+import scipy.sparse as sp
+from IPython.display import display, HTML
+import numpy as np
+from pyvis.network import Network
+import matplotlib.colors as mcolors
+import seaborn as sns
+import ipywidgets as widgets
 
 def stampa_info_doc(documents, triples, doc_id, text=False):
     """
@@ -484,7 +492,7 @@ def compute_communities(g):
         
         # 4. Calculate the 2 smallest algebraic ('SA') eigenvalues/vectors
         # We use eigsh because the undirected Laplacian is symmetric
-        eigenvalues, eigenvectors = sla.eigsh(L, k=2, which='SA')
+        eigenvalues, eigenvectors = sp.linalg.eigsh(L, k=2, which='SA')
         
         # eigenvalues[0] is ~0. eigenvalues[1] is the Spectral Gap.
         g["spectral_gap"] = float(eigenvalues[1])
@@ -494,20 +502,6 @@ def compute_communities(g):
     except Exception as e:
         print(f"[Time] Laplacian FAILED: {e}")
 
-
-    # ==========================================
-    # 1. LAPLACIAN (Fiedler Vector & Spectral Gap)
-    # ==========================================
-    t0 = time.time()
-    try:
-        L = g.get_laplacian(sparse=True)
-        eigenvalues, eigenvectors = sla.eigsh(L, k=2, which='SM')
-        
-        g["spectral_gap"] = float(eigenvalues[1])
-        g.vs["fiedler_vector"] = eigenvectors[:, 1].tolist()
-        print(f"[Time] Laplacian (Spectral Gap: {eigenvalues[1]:.5f}): {time.time() - t0:.2f} s")
-    except Exception as e:
-        print(f"[Time] Laplacian FAILED: {e}")
 
     # ==========================================
     # 2. LOUVAIN (Requires Undirected Graph)
@@ -580,7 +574,7 @@ def compute_global_statistics(g):
 
 
 
-def clean_communities_and_bisect(g, alpha = 0.1):
+def clean_communities_and_bisect(g, alpha = 0.008):
     """
     1. Binarizes the Laplacian Fiedler vector (1 for >= 0, 0 for < 0).
     2. Cleans Infomap communities by assigning small clusters to -1.
@@ -622,15 +616,571 @@ def clean_communities_and_bisect(g, alpha = 0.1):
             cleaned_membership.append(cluster_id)
         else:
             cleaned_membership.append(-1)
-            
+
     # Store the cleaned list as a new node attribute for your Pandas dataframe
     g.vs["cleaned_infomap"] = cleaned_membership
-    
-    # Create the formal igraph VertexClustering object "in the same way it was passed"
-    cleaned_infomap_obj = ig.VertexClustering(g, membership=cleaned_membership)
     
     valid_clusters = [cid for cid, count in cluster_counts.items() if count >= min_size]
     print(f"  > Infomap: Kept {len(valid_clusters)} major communities.")
     print(f"  > All other nodes assigned to noise cluster (-1).")
 
-    return g, cleaned_infomap_obj
+    # Just return g!
+    return g
+            
+
+
+
+def compute_layout_and_export(g, export_name, output_dir="../Output"):
+    """
+    Computes a 2D layout (Bipartite if applicable, DrL otherwise), 
+    normalizes coordinates to [0,1], assigns x/y attributes, 
+    and exports to Parquet and GraphML in a target subfolder.
+    """
+    print("--- 1. Computing 2D Layout ---")
+    t0 = time.time()
+    
+    # 1. Select layout method
+    if g.is_bipartite():
+        print("Graph is bipartite! Computing parallel bipartite layout...")
+        if "type" not in g.vs.attributes():
+            print("  > Inferring bipartite node classes...")
+            g.vs["type"] = g.bipartite_class()
+        layout = g.layout_bipartite()
+    else:
+        print("Graph is not perfectly bipartite. Computing DrL force-directed layout...")
+        layout = g.layout_drl()
+    
+# 2. Extract coordinates and normalize to [0,1] for better plotting
+    coords = pd.DataFrame(layout.coords, columns=["x", "y"])
+    coords["x"] = (coords["x"] - coords["x"].min()) / (coords["x"].max() - coords["x"].min())
+    coords["y"] = (coords["y"] - coords["y"].min()) / (coords["y"].max() - coords["y"].min())
+
+    g.vs["x"] = coords["x"].tolist()
+    g.vs["y"] = coords["y"].tolist()
+
+ 
+    print(f"[Time] Layout calculated & normalized: {time.time() - t0:.2f} s")
+
+    print("\n--- 2. Extracting to Pandas DataFrames ---")
+    # Nodes
+    node_attrs = g.vs.attributes()
+    nodes_data = {attr: g.vs[attr] for attr in node_attrs}
+    df_nodes = pd.DataFrame(nodes_data)
+    
+    # Edges
+    edges_data = {
+        "source": [g.vs[e.source]["name"] for e in g.es],
+        "target": [g.vs[e.target]["name"] for e in g.es]
+    }
+    for attr in g.es.attributes():
+        edges_data[attr] = g.es[attr]
+        
+    df_edges = pd.DataFrame(edges_data)
+    
+    print(f"Nodes DataFrame: {df_nodes.shape}")
+    print(f"Edges DataFrame: {df_edges.shape}")
+
+    print(f"\n--- 3. Exporting to '{output_dir}/' folder ---")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    nodes_path = os.path.join(output_dir, f"{export_name}_nodes.parquet")
+    edges_path = os.path.join(output_dir, f"{export_name}_edges.parquet")
+    graph_path = os.path.join(output_dir, f"{export_name}.graphml")
+    
+    df_nodes.to_parquet(nodes_path, engine="pyarrow")
+    df_edges.to_parquet(edges_path, engine="pyarrow")
+    g.write_graphml(graph_path)
+    
+    print(f"✅ All exports complete! Files saved in {output_dir}/")
+    
+    return df_nodes, df_edges
+###########################################
+###########################################
+
+## Visualizzazione dei grafi 
+
+##########################################
+##########################################
+
+def print_global_overview(g, stringa = '',  top_clusters=10):
+    print("\n" + "="*80)
+    print(f"📊 GLOBAL GRAPH OVERVIEW: {stringa}")
+    print("="*80)
+
+    attrs = g.attributes()
+
+    def safe(key, fmt=None):
+        if key in attrs and g[key] is not None:
+            return format(g[key], fmt) if fmt else g[key]
+        return "—"
+
+    print(f"Vertices:              {safe('num_vertices')}")
+    print(f"Edges:                 {safe('num_edges')}")
+    print(f"Density:               {safe('density', '.6f')}")
+    print(f"Reciprocity:           {safe('reciprocity', '.6f')}")
+    print(f"Avg Path Length:       {safe('avg_path_length', '.4f')}")
+    print(f"Diameter:              {safe('diameter')}")
+    print(f"Spectral Gap:          {safe('spectral_gap', '.6f')}")
+    print(f"Louvain Modularity:    {safe('louvain_modularity', '.6f')}")
+    print(f"Infomap Modularity:    {safe('infomap_modularity', '.6f')}")
+
+    print("\n" + "-"*80)
+    print("🌍 INFOMAP COMMUNITIES (Ordered by Size)")
+    print("-"*80)
+
+    if "cleaned_infomap" in g.vs.attributes():
+        cluster_attr = "cleaned_infomap"
+    elif "infomap_cluster" in g.vs.attributes():
+        cluster_attr = "infomap_cluster"
+    else:
+        print("No Infomap clustering found.")
+        print("="*80)
+        return
+
+    import pandas as pd
+    clusters = pd.Series(g.vs[cluster_attr])
+    total_nodes = g.vcount()
+
+    sizes = clusters.value_counts().sort_values(ascending=False)
+
+    # Noise cluster
+    if -1 in sizes.index:
+        noise_size = sizes.loc[-1]
+        print(f"Noise cluster (-1): {noise_size} nodes ({noise_size/total_nodes:.2%})\n")
+        sizes = sizes.drop(-1)
+
+    print(f"Total clusters (excluding noise): {len(sizes)}\n")
+
+    for rank, (cid, size) in enumerate(sizes.head(top_clusters).items(), 1):
+        print(f"{rank}. Cluster {cid:>3}  →  {size:>6} nodes ({size/total_nodes:.2%})")
+
+    print("="*80)
+
+
+
+
+
+
+def print_edge_standings(g, n=20):
+
+    attrs = g.es.attributes()
+
+    candidate_metrics = [
+        "edge_betweenness"
+    ]
+
+    metrics = [m for m in candidate_metrics if m in attrs]
+
+    if not metrics:
+        display(HTML("<b>No edge ranking metrics found.</b>"))
+        return
+
+    df = pd.DataFrame({
+        "source": [g.vs[e.source]["name"] for e in g.es],
+        "target": [g.vs[e.target]["name"] for e in g.es],
+    })
+
+    if "url" in attrs:
+        df["url"] = g.es["url"]
+
+    for metric in metrics:
+        df[metric] = g.es[metric]
+
+    html_blocks = []
+
+    for metric in metrics:
+
+        ranked = df.sort_values(metric, ascending=False).head(n)
+
+        rows_html = ""
+        for _, row in ranked.iterrows():
+
+            value = row[metric]
+            value_str = f"{value:.6f}" if isinstance(value,(int,float,np.floating)) else value
+
+            url_html = ""
+            if "url" in row and pd.notna(row["url"]):
+                url_html = f"<a href='{row['url']}' target='_blank'>🔗</a>"
+
+            rows_html += f"""
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <span><b>{row['source']}</b> ➜ <b>{row['target']}</b></span>
+                <span>{value_str} {url_html}</span>
+            </div>
+            """
+
+        block = f"""
+        <div style="flex:1; padding:10px;">
+            <h3>{metric}</h3>
+            {rows_html}
+        </div>
+        """
+        html_blocks.append(block)
+
+    full_html = f"""
+    <div style="display:flex; flex-wrap:wrap;">
+        {''.join(html_blocks)}
+    </div>
+    """
+
+    display(HTML(full_html))
+
+
+
+#
+#
+#def print_node_standings(g, n=20):
+#
+#    attrs = g.vs.attributes()
+#
+#    candidate_metrics = [
+#        "pagerank",
+#        "degree_all",
+#        "degree_in",
+#        "degree_out",
+#        "betweenness",
+#        "eigenvector",
+#        "hub_score",
+#        "authority_score",
+#        "coreness",
+#        "fiedler_vector"
+#    ]
+#
+#    metrics = [m for m in candidate_metrics if m in attrs]
+#
+#    if not metrics:
+#        display(HTML("<b>No node ranking metrics found.</b>"))
+#        return
+#
+#    base_df = pd.DataFrame({
+#        "name": g.vs["name"]
+#    })
+#
+#    if "type" in attrs:
+#        base_df["type"] = g.vs["type"]
+#
+#    if "one_sentence_summary" in attrs:
+#        base_df["summary"] = g.vs["one_sentence_summary"]
+#
+#    if "url" in attrs:
+#        base_df["url"] = g.vs["url"]
+#
+#    for metric in metrics:
+#        base_df[metric] = g.vs[metric]
+#
+#    html_blocks = []
+#
+#    for metric in metrics:
+#
+#        ranked = base_df.sort_values(metric, ascending=False).head(n)
+#
+#        rows_html = ""
+#
+#        for _, row in ranked.iterrows():
+#
+#            value = row[metric]
+#            value_str = f"{value:.6f}" if isinstance(value,(int,float,np.floating)) else value
+#
+#            # Icon for bipartite type
+#            icon = ""
+#            if "type" in row:
+#                icon = "📄" if row["type"] else "👤"
+#
+#            # URL inline on right
+#            url_html = ""
+#            if "url" in row and pd.notna(row["url"]):
+#                url_html = f"<a href='{row['url']}' target='_blank' style='text-decoration:none;'>🔗</a>"
+#
+#            summary_html = ""
+#            if "summary" in row and pd.notna(row["summary"]):
+#                summary_html = f"<div style='font-size:0.8em;color:#555;'>{row['summary']}</div>"
+#
+#            rows_html += f"""
+#            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+#                <div style="max-width:80%;">
+#                    <b>{icon} {row['name']}</b>
+#                    <div style="font-size:0.85em;color:#333;">{metric}: {value_str}</div>
+#                    {summary_html}
+#                </div>
+#                <div>
+#                    {url_html}
+#                </div>
+#            </div>
+#            """
+#
+#        block = f"""
+#        <div style="flex:1; min-width:420px; padding:12px;">
+#            <h3 style="margin-top:0;">{metric}</h3>
+#            {rows_html}
+#        </div>
+#        """
+#
+#        html_blocks.append(block)
+#
+#    full_html = f"""
+#    <div style="display:flex; flex-wrap:wrap;">
+#        {''.join(html_blocks)}
+#    </div>
+#    """
+#
+#    display(HTML(full_html))
+
+
+def print_node_standings(g, top_n=20):
+    """
+    Render compact, scrollable node standings for a single igraph Graph.
+    - top_n: number of nodes per metric to display
+    - Hides hub/authority/eigenvector if graph is non-bipartite
+    - Summary in tooltip
+    - URL column included only if g.vs has 'url' attribute
+    """
+    attrs = g.vs.attributes()
+    bipartite = "type" in attrs
+    has_url = "url" in attrs
+
+    # Candidate metrics
+    candidate_metrics = [
+        "pagerank",
+        "degree_all",
+        "degree_in",
+        "degree_out",
+        "betweenness",
+        "eigenvector",
+        "hub_score",
+        "authority_score",
+        "coreness",
+        "fiedler_vector"
+    ]
+
+    # Remove metrics that don't make sense
+    if not bipartite:
+        candidate_metrics = [m for m in candidate_metrics if m not in ["hub_score", "authority_score", "eigenvector"]]
+
+    metrics = [m for m in candidate_metrics if m in attrs]
+    if not metrics:
+        display(HTML("<b>No ranking metrics found.</b>"))
+        return
+
+    # Base DataFrame
+    base_df = pd.DataFrame({"name": g.vs["name"]})
+    if bipartite:
+        base_df["type"] = g.vs["type"]
+    if "one_sentence_summary" in attrs:
+        base_df["summary"] = g.vs["one_sentence_summary"]
+    if has_url:
+        base_df["url"] = g.vs["url"]
+
+    for metric in metrics:
+        base_df[metric] = g.vs[metric]
+
+    # Generate HTML per metric
+    metric_blocks = []
+    for metric in metrics:
+        ranked = base_df.sort_values(metric, ascending=False).head(top_n)
+        table_rows = ""
+
+        for _, row in ranked.iterrows():
+            value = row[metric]
+            value_str = f"{value:.6f}" if isinstance(value, (int, float, np.floating)) else value
+
+            icon = ""
+            if bipartite and "type" in row:
+                icon = "📄" if row["type"] else "👤"
+
+            # URL only if exists
+            url_html = ""
+            if has_url and "url" in row and pd.notna(row["url"]):
+                url_html = f"<a href='{row['url']}' target='_blank'>🔗</a>"
+
+            # Tooltip summary
+            summary_html = ""
+            if "summary" in row and pd.notna(row["summary"]):
+                summary_html = f"title='{row['summary']}'"
+
+            table_rows += f"""
+            <tr {summary_html}>
+                <td>{icon} {row['name']}</td>
+                <td>{value_str}</td>""" + (f"<td>{url_html}</td>" if has_url else "") + """
+            </tr>
+            """
+
+        # Table header
+        url_header = "<th style='text-align:left;'>URL</th>" if has_url else ""
+        block_html = f"""
+        <div style="max-height:250px; overflow:auto; margin-bottom:10px; border:1px solid #ddd; padding:5px;">
+            <h4 style="margin:2px 0;">{metric}</h4>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="border-bottom:1px solid #ccc;">
+                        <th style="text-align:left;">Node</th>
+                        <th style="text-align:left;">{metric}</th>
+                        {url_header}
+                    </tr>
+                </thead>
+                <tbody>
+                    {table_rows}
+                </tbody>
+            </table>
+        </div>
+        """
+        metric_blocks.append(block_html)
+
+    full_html = f"""
+    <div style="max-height:600px; overflow:auto; border:1px solid #aaa; padding:8px;">
+        {''.join(metric_blocks)}
+    </div>
+    """
+    display(HTML(full_html))
+
+
+
+
+def visualize_top1000_subgraph(graph, filename="top1000_subgraph"):
+    """
+    Visualize the top 1000 most central nodes of an igraph Graph `graph`,
+    using its precomputed normalized ('x','y') layout and Infomap clusters
+    for coloring.
+
+    The file is saved in: ../Renderings/<filename>.html
+    """
+
+
+
+    # ==========================================================
+    # 1️⃣ Centrality selection
+    # ==========================================================
+    vs_attrs = graph.vs.attribute_names()
+
+    if "pagerank" in vs_attrs:
+        centrality = list(graph.vs["pagerank"])
+    elif "page_rank" in vs_attrs:
+        centrality = list(graph.vs["page_rank"])
+    else:
+        centrality = graph.degree()
+
+    centrality = np.array(centrality)
+    indices = np.argsort(centrality)[::-1]
+    top_indices = indices[:min(1000, len(indices))]
+
+    sub = graph.induced_subgraph(top_indices.tolist())
+
+    # ==========================================================
+    # 2️⃣ Layout handling (normalized → large canvas)
+    # ==========================================================
+    if "x" not in sub.vs.attribute_names() or "y" not in sub.vs.attribute_names():
+        raise ValueError("Graph must contain 'x' and 'y' vertex attributes.")
+
+    xs = np.array(sub.vs["x"], dtype=float)
+    ys = np.array(sub.vs["y"], dtype=float)
+
+    # Normalize safely (even if already normalized)
+    if xs.max() - xs.min() > 0:
+        xs = (xs - xs.min()) / (xs.max() - xs.min())
+    else:
+        xs = np.zeros_like(xs)
+
+    if ys.max() - ys.min() > 0:
+        ys = (ys - ys.min()) / (ys.max() - ys.min())
+    else:
+        ys = np.zeros_like(ys)
+
+    # Scale to visible canvas
+    SCALE = 2000
+    xs = (xs - 0.5) * SCALE
+    ys = (ys - 0.5) * SCALE
+
+    # ==========================================================
+    # 3️⃣ Cluster coloring (robust)
+    # ==========================================================
+    if "cleaned_infomap" in sub.vs.attribute_names():
+        clusters = list(sub.vs["cleaned_infomap"])
+    elif "infomap_cluster" in sub.vs.attribute_names():
+        clusters = list(sub.vs["infomap_cluster"])
+    else:
+        clusters = [0] * sub.vcount()
+
+    # Safety in case of malformed scalar attribute
+    if not isinstance(clusters, (list, tuple)):
+        clusters = [clusters] * sub.vcount()
+
+    unique_clusters = sorted(set(clusters))
+
+    if len(unique_clusters) == 1:
+        node_colors = ["#1f77b4"] * sub.vcount()
+    else:
+        palette = sns.color_palette("hls", len(unique_clusters))
+        cluster_to_color = {
+            cl: mcolors.to_hex(col)
+            for cl, col in zip(unique_clusters, palette)
+        }
+        node_colors = [cluster_to_color[c] for c in clusters]
+
+    # ==========================================================
+    # 4️⃣ Tooltip construction
+    # ==========================================================
+    names = (
+        list(sub.vs["name"])
+        if "name" in sub.vs.attribute_names()
+        else [str(v.index) for v in sub.vs]
+    )
+
+    summaries = (
+        list(sub.vs["one_sentence_summary"])
+        if "one_sentence_summary" in sub.vs.attribute_names()
+        else [""] * sub.vcount()
+    )
+
+    urls = (
+        list(sub.vs["url"])
+        if "url" in sub.vs.attribute_names()
+        else [""] * sub.vcount()
+    )
+
+    titles = []
+    for nm, summ, url in zip(names, summaries, urls):
+
+        parts = [f"<b>{nm}</b>"]
+
+        if summ and str(summ) != "nan":
+            parts.append(str(summ))
+
+        if url and str(url) != "nan":
+            parts.append(f"<a href='{url}' target='_blank'>🔗 link</a>")
+
+        titles.append("<br>".join(parts))
+
+    # ==========================================================
+    # 5️⃣ Build interactive PyVis network
+    # ==========================================================
+    net = Network(
+        height="900px",
+        width="100%",
+        notebook=True,
+        directed=sub.is_directed()
+    )
+
+    net.toggle_physics(False)
+
+    node_ids = list(range(sub.vcount()))
+
+    net.add_nodes(
+        node_ids,
+        x=xs.tolist(),
+        y=ys.tolist(),
+        label=[""] * sub.vcount(),
+        title=titles,
+        color=node_colors,
+        size=[6] * sub.vcount()
+    )
+    net.add_edges(sub.get_edgelist())
+
+    # ==========================================================
+    # 6️⃣ Save file
+    # ==========================================================
+    output_dir = "../Renderings"
+    os.makedirs(output_dir, exist_ok=True)
+
+    filepath = os.path.join(output_dir, f"{filename}.html")
+    net.show(filepath)
+
+    print(f"\n✅ Graph saved to: {filepath}")

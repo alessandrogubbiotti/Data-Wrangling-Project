@@ -1,4 +1,10 @@
 
+*.parquet
+Presentazione/presentazione_epstein.aux
+Presentazione/presentazione_epstein.nav
+Presentazione/presentazione_epstein.out
+Presentazione/presentazione_epstein.snm
+Presentazione/presentazione_epstein.toc
 # Jupyter Notebooks
 .ipynb_checkpoints/
 Untitled*.ipynb
