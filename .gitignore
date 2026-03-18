@@ -30,3 +30,21 @@ Report/lib/
 */__pycache__/
 
 *.log
+
+# Quarto
+.quarto/
+*_cache/
+*_files/
+
+# Output finale (Opzionale)
+# Se vuoi caricare il PDF su GitHub, NON mettere la riga sotto.
+# Se preferisci che il PDF resti solo sul tuo Mac, aggiungila.
+Output/
+
+# Python & Jupyter
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+/.quarto/
+**/*.quarto_ipynb

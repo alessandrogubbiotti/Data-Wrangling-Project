@@ -1,3 +1,12 @@
+### Another link 
+
+[Link to Graph Convolutional Networks](https://distill.pub/2021/gnn-intro/)
+
+[Link to some other data](https://pro.europeana.eu/page/issue-7-lodlam)
+
+[Stasi Archives](https://www.stasi-mediathek.de)
+
+
 ### Sources 
 [Documenti rilasciati dal Dipartimento di Giustizia](https://www.justice.gov/epstein/doj-disclosures) grazie all Epstein Files Transparency Acts. I file portano nomi del tipo "EFTA00009807.pdf". Il documento può contenere molte pagine. [Un modo per vedere i documenti rilasciati dal congresso è ](https://github.com/markramm/EpsteinFiles/tree/main/documents/house_oversight_nov_2025)
 

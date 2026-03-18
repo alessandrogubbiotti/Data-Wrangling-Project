@@ -1,0 +1,63 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\contentsline {section}{\numberline {1}Epstein Files}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Introduzione}{1}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Argomento di Ricerca}{1}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Storia e date del rilascio degli Epstein Files}{2}{subsubsection.1.1.2}%
+\contentsline {subparagraph}{\numberline {1.1.2.0.1}Dataset Ufficiali}{2}{subparagraph.1.1.2.0.1}%
+\contentsline {paragraph}{\numberline {1.1.2.1}File Rimossi o Censurati}{4}{paragraph.1.1.2.1}%
+\contentsline {subparagraph}{\numberline {1.1.2.1.1}Cercare tra i File}{4}{subparagraph.1.1.2.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.3}Galassia di Parser per gli Epstein Files}{4}{subsubsection.1.1.3}%
+\contentsline {paragraph}{\numberline {1.1.3.1}Parser}{4}{paragraph.1.1.3.1}%
+\contentsline {paragraph}{\numberline {1.1.3.2}Parser con Riconoscimento Semantico}{4}{paragraph.1.1.3.2}%
+\contentsline {paragraph}{\numberline {1.1.3.3}Ranking}{5}{paragraph.1.1.3.3}%
+\contentsline {subsubsection}{\numberline {1.1.4}Struttura del Report}{5}{subsubsection.1.1.4}%
+\contentsline {subsection}{\numberline {1.2}Dataset}{5}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Descrizione del Dataset}{5}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Criticità}{7}{subsubsection.1.2.2}%
+\contentsline {paragraph}{\numberline {1.2.2.1}Parsing delle Triple Semantiche}{7}{paragraph.1.2.2.1}%
+\contentsline {paragraph}{\numberline {1.2.2.2}Diversa Garnularità dei Document}{7}{paragraph.1.2.2.2}%
+\contentsline {paragraph}{\numberline {1.2.2.3}Deduplicazione}{7}{paragraph.1.2.2.3}%
+\contentsline {paragraph}{\numberline {1.2.2.4}Grado di Bias}{8}{paragraph.1.2.2.4}%
+\contentsline {subsection}{\numberline {1.3}Exploratory Data Analysis (EDA)}{8}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}Upload dei Dati}{8}{subsubsection.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}Pulizia e Filtraggio}{8}{subsubsection.1.3.2}%
+\contentsline {paragraph}{\numberline {1.3.2.1}Identificazione degli Alias e un'Inconsistenza}{8}{paragraph.1.3.2.1}%
+\contentsline {paragraph}{\numberline {1.3.2.2}NaN, Deduplicati Forti e Deduplicati Deboli}{11}{paragraph.1.3.2.2}%
+\contentsline {paragraph}{\numberline {1.3.2.3}Entità Sconosciute e Documentic come Entità}{11}{paragraph.1.3.2.3}%
+\contentsline {paragraph}{\numberline {1.3.2.4}Rimozione di Alcuni Dati}{12}{paragraph.1.3.2.4}%
+\contentsline {paragraph}{\numberline {1.3.2.5}Pulizia Finale e Risoluzione di un'Inconsistenza}{12}{paragraph.1.3.2.5}%
+\contentsline {paragraph}{\numberline {1.3.2.6}Un'Ulteriore Inconsistenza sulla Categoria di Documento}{12}{paragraph.1.3.2.6}%
+\contentsline {subsection}{\numberline {1.4}Riassunto}{12}{subsection.1.4}%
+\contentsline {subparagraph}{\numberline {1.4.0.0.1}Passaggi logici:}{12}{subparagraph.1.4.0.0.1}%
+\contentsline {subparagraph}{\numberline {1.4.0.0.2}Progetti Futuri}{13}{subparagraph.1.4.0.0.2}%
+\contentsline {paragraph}{\numberline {1.4.0.1}Consistenza}{13}{paragraph.1.4.0.1}%
+\contentsline {paragraph}{\numberline {1.4.0.2}Deduplicazione}{13}{paragraph.1.4.0.2}%
+\contentsline {paragraph}{\numberline {1.4.0.3}Pulizia e Visualizzazione}{14}{paragraph.1.4.0.3}%
+\contentsline {paragraph}{\numberline {1.4.0.4}Nota sull'Affidabilità del Dataset}{14}{paragraph.1.4.0.4}%
+\contentsline {subsection}{\numberline {1.5}Salvataggio del grafo}{26}{subsection.1.5}%
+\contentsline {paragraph}{\numberline {1.5.0.1}Grafo Bipartito}{26}{paragraph.1.5.0.1}%
+\contentsline {paragraph}{\numberline {1.5.0.2}Neo4j}{26}{paragraph.1.5.0.2}%
+\contentsline {paragraph}{\numberline {1.5.0.3}Grafi}{26}{paragraph.1.5.0.3}%
+\contentsline {subsection}{\numberline {1.6}}{28}{subsection.1.6}%
+\contentsline {subsection}{\numberline {1.7}Statistiche Di Grafo}{28}{subsection.1.7}%
+\contentsline {paragraph}{\numberline {1.7.0.1}Grafi}{28}{paragraph.1.7.0.1}%
+\contentsline {paragraph}{\numberline {1.7.0.2}Metriche}{29}{paragraph.1.7.0.2}%
+\contentsline {subparagraph}{\numberline {1.7.0.2.1}Metriche Globali}{29}{subparagraph.1.7.0.2.1}%
+\contentsline {paragraph}{\numberline {1.7.0.3}Pipeline}{29}{paragraph.1.7.0.3}%
+\contentsline {subsubsection}{\numberline {1.7.1}📊 Graph Data Dictionary}{30}{subsubsection.1.7.1}%
+\contentsline {paragraph}{\numberline {1.7.1.1}1 Attributi a Livello di Grafo}{30}{paragraph.1.7.1.1}%
+\contentsline {paragraph}{\numberline {1.7.1.2}2 Attributi dei Nodi}{31}{paragraph.1.7.1.2}%
+\contentsline {subparagraph}{\numberline {1.7.1.2.1}🔹 Identità e Layout}{31}{subparagraph.1.7.1.2.1}%
+\contentsline {subparagraph}{\numberline {1.7.1.2.2}🔹 Importanza / Centralità}{31}{subparagraph.1.7.1.2.2}%
+\contentsline {subparagraph}{\numberline {1.7.1.2.3}🔹 Struttura e Comunità}{32}{subparagraph.1.7.1.2.3}%
+\contentsline {subparagraph}{\numberline {1.7.1.2.4}3. Attributi degli Archi}{32}{subparagraph.1.7.1.2.4}%
+\contentsline {paragraph}{\numberline {1.7.1.3}4. Esportazione dei Dati}{32}{paragraph.1.7.1.3}%
+\contentsline {subparagraph}{\numberline {1.7.1.3.1}🔹 Esportazione GraphML (Struttura Completa del Grafo)}{32}{subparagraph.1.7.1.3.1}%
+\contentsline {subparagraph}{\numberline {1.7.1.3.2}Esportazione in formato .parquet}{33}{subparagraph.1.7.1.3.2}%
+\contentsline {paragraph}{\numberline {1.7.1.4}Conclusione}{33}{paragraph.1.7.1.4}%
+\contentsline {subsection}{\numberline {1.8}Appendici}{36}{subsection.1.8}%
+\contentsline {subsubsection}{\numberline {1.8.1}Appendice A: Architettura del Progetto}{36}{subsubsection.1.8.1}%
+\contentsline {subsubsection}{\numberline {1.8.2}Appendice B: Metodologia e Pipeline dei Dati (Utils)}{36}{subsubsection.1.8.2}%
+\contentsline {subsubsection}{\numberline {1.8.3}Appendice C: Esempio di Documento}{37}{subsubsection.1.8.3}%
+\contentsline {subsubsection}{\numberline {1.8.4}Appendice D: Qualche Modifica da Fare al .tex in Output}{42}{subsubsection.1.8.4}%

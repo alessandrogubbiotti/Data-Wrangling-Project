@@ -1,0 +1,71 @@
+project:
+  type: default
+  output-dir: Output
+title: "Epstein Files"
+lang: it
+jupyter: .graph_environment
+
+crossref:
+  lst-prefix: "Codice"
+
+format:
+  pdf:
+    keep-tex: true
+    documentclass: article
+    fig-pos: 'H'
+    highlight-stile: tango
+    link-citations: true
+    colorlinks: true
+    toc: true
+    toc-depth: 4
+    number-sections: true
+    papersize: a4
+    pdf-engine: lualatex
+#    cite-method: citeproc
+include-in-header:
+      text: |
+        \usepackage{graphicx}
+        \graphicspath{ {../Report/} }
+        \usepackage{fvextra}
+        \usepackage{hyperref}
+        \usepackage{xurl}
+        \hypersetup{breaklinks=true}
+        \usepackage{fontawesome5}
+        \usepackage{newunicodechar}
+        \newunicodechar{👤}{\faUser}
+        \newunicodechar{📄}{\faFile}
+        \newunicodechar{🔗}{\faLink}
+        \newunicodechar{📊}{\faChartBar}
+        \newunicodechar{🌍}{\faGlobe}
+        \newunicodechar{✅}{\faCheckCircle}
+        \newunicodechar{🔹}{\faCaretRight}
+        \newunicodechar{👈}{\faHandPointLeft}
+        \newunicodechar{❌}{\faTimes}
+        \newunicodechar{▶}{\faPlay}
+        \newunicodechar{μ}{\ensuremath{\mu}}
+        \newunicodechar{≈}{\ensuremath{\approx}}
+        \newunicodechar{⚠}{\faExclamationTriangle}
+        \newunicodechar{≥}{\ensuremath{\geq}}
+        \newunicodechar{️}{}
+        \newunicodechar{├}{\textbar}
+        \newunicodechar{─}{-}
+        \newunicodechar{└}{\textbar}
+        \newunicodechar{│}{\textbar}
+        \usepackage{float}
+        %\usepackage{caption}
+        \makeatletter
+          \makeatletter
+          \AtBeginDocument{%
+            \fvset{breaklines=true, breakanywhere=true}%
+            \def\listingname{Codice}%
+            \providecommand{\thecodelisting}{\arabic{codelisting}}%
+            \renewenvironment{codelisting}{%
+              \par\medskip\noindent%
+              \refstepcounter{codelisting}%
+              \def\caption##1{##1\par\noindent\small\listingname~\thecodelisting\par}%
+            }{\par\medskip}%
+            \RecustomVerbatimEnvironment{verbatim}{Verbatim}{breaklines=true,breakanywhere=true,breaksymbolleft={},breakindent=0pt,fontsize=\small}%
+          }
+        \makeatother
+bibliography: Bibliography/references.bib
+csl: apa.csl

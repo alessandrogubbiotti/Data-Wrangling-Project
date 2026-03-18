@@ -690,7 +690,33 @@ def compute_layout_and_export(g, export_name, output_dir="../Output"):
     df_nodes.to_parquet(nodes_path, engine="pyarrow")
     df_edges.to_parquet(edges_path, engine="pyarrow")
     g.write_graphml(graph_path)
+
+    # -----------------------------
+    # 4. Export Global Graph Metrics
+    # -----------------------------
+    print("\n--- 4. Exporting Global Graph Metrics ---")
     
+    graph_attrs = g.attributes()
+    
+    global_metrics = {}
+    
+    for attr in graph_attrs:
+        value = g[attr]
+    
+        # Round numeric values
+        if isinstance(value, (int, float)):
+            global_metrics[attr] = round(value, 4)
+        else:
+            global_metrics[attr] = value
+    
+    df_global = pd.DataFrame([global_metrics])
+    
+    metrics_path = os.path.join(output_dir, f"{export_name}_global_metrics.csv")
+    df_global.to_csv(metrics_path, index=False)
+    
+    print(f"Global metrics exported: {metrics_path}")
+    
+        
     print(f"✅ All exports complete! Files saved in {output_dir}/")
     
     return df_nodes, df_edges
